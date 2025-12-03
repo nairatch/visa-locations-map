@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Visa Locations</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 60vh; width: 100%; }
+    #cityList { height: 40vh; overflow-y: auto; padding: 10px; font-size: 16px; }
+    .flag-marker { font-size: 20px; line-height: 20px; }
+    .city-item { margin: 2px 0; }
+    .continent-title { font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Visa Locations</h2>
+  <div id="map"></div>
+  <div id="cityList"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    window.onload = function() {
+      // Initialize map
+      var map = L.map('map', {
+        minZoom: 2 // Minimum zoom level (prevents too far zoom out)
+      }).setView([0, 20], 2);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // List of all visa locations
+      var visaLocations = [
+        {city: 'Abuja', country: 'Nigeria', coords: [9.0765, 7.3986], flag: '🇳🇬', continent: 'Africa'},
+        {city: 'Lagos', country: 'Nigeria', coords: [6.5244, 3.3792], flag: '🇳🇬', continent: 'Africa'},
+        {city: 'Abu Dhabi', country: 'UAE', coords: [24.4539, 54.3773], flag: '🇦🇪', continent: 'Asia'},
+        {city: 'Dubai', country: 'UAE', coords: [25.276987, 55.296249], flag: '🇦🇪', continent: 'Asia'},
+        {city: 'Accra', country: 'Ghana', coords: [5.6037, -0.1870], flag: '🇬🇭', continent: 'Africa'},
+        {city: 'Amsterdam', country: 'Netherlands', coords: [52.3676, 4.9041], flag: '🇳🇱', continent: 'Europe'},
+        {city: 'Ankara', country: 'Turkey', coords: [39.9334, 32.8597], flag: '🇹🇷', continent: 'Europe'},
+        {city: 'Antananarivo', country: 'Madagascar', coords: [-18.8792, 47.5079], flag: '🇲🇬', continent: 'Africa'},
+        {city: 'Asunción', country: 'Paraguay', coords: [-25.2637, -57.5759], flag: '🇵🇾', continent: 'South America'},
+        {city: 'Astana', country: 'Kazakhstan', coords: [51.1694, 71.4491], flag: '🇰🇿', continent: 'Asia'},
+        {city: 'Athens', country: 'Greece', coords: [37.9838, 23.7275], flag: '🇬🇷', continent: 'Europe'},
+        {city: 'Baku', country: 'Azerbaijan', coords: [40.4093, 49.8671], flag: '🇦🇿', continent: 'Asia'},
+        {city: 'Banjul', country: 'Gambia', coords: [13.4549, -16.5790], flag: '🇬🇲', continent: 'Africa'},
+        {city: 'Belgrade', country: 'Serbia', coords: [44.8176, 20.4569], flag: '🇷🇸', continent: 'Europe'},
+        {city: 'Berlin', country: 'Germany', coords: [52.52, 13.4050], flag: '🇩🇪', continent: 'Europe'},
+        {city: 'Bern', country: 'Switzerland', coords: [46.9481, 7.4474], flag: '🇨🇭', continent: 'Europe'},
+        {city: 'Bogota', country: 'Colombia', coords: [4.7110, -74.0721], flag: '🇨🇴', continent: 'South America'},
+        {city: 'Bratislava', country: 'Slovakia', coords: [48.1486, 17.1077], flag: '🇸🇰', continent: 'Europe'},
+        {city: 'Brisbane', country: 'Australia', coords: [-27.4698, 153.0251], flag: '🇦🇺', continent: 'Oceania'},
+        {city: 'Brussels', country: 'Belgium', coords: [50.8503, 4.3517], flag: '🇧🇪', continent: 'Europe'},
+        {city: 'Bucharest', country: 'Romania', coords: [44.4268, 26.1025], flag: '🇷🇴', continent: 'Europe'},
+        {city: 'Budapest', country: 'Hungary', coords: [47.4979, 19.0402], flag: '🇭🇺', continent: 'Europe'},
+        {city: 'Bujumbura', country: 'Burundi', coords: [-3.3614, 29.3599], flag: '🇧🇮', continent: 'Africa'},
+        {city: 'Cairo', country: 'Egypt', coords: [30.0444, 31.2357], flag: '🇪🇬', continent: 'Africa'},
+        {city: 'Cape Town', country: 'South Africa', coords: [-33.9249, 18.4241], flag: '🇿🇦', continent: 'Africa'},
+        {city: 'Casablanca', country: 'Morocco', coords: [33.5731, -7.5898], flag: '🇲🇦', continent: 'Africa'},
+        {city: 'Chennai', country: 'India', coords: [13.0827, 80.2707], flag: '🇮🇳', continent: 'Asia'},
+        {city: 'Colombo', country: 'Sri Lanka', coords: [6.9271, 79.8612], flag: '🇱🇰', continent: 'Asia'},
+        {city: 'Copenhagen', country: 'Denmark', coords: [55.6761, 12.5683], flag: '🇩🇰', continent: 'Europe'},
+        {city: 'Dakar', country: 'Senegal', coords: [14.6928, -17.4467], flag: '🇸🇳', continent: 'Africa'},
+        {city: 'Dublin', country: 'Ireland', coords: [53.3331, -6.2489], flag: '🇮🇪', continent: 'Europe'},
+        {city: 'Eswatini', country: 'Eswatini', coords: [-26.3054, 31.1364], flag: '🇸🇿', continent: 'Africa'},
+        {city: 'Florence', country: 'Italy', coords: [43.7696, 11.2558], flag: '🇮🇹', continent: 'Europe'},
+        {city: 'Frankfurt', country: 'Germany', coords: [50.1109, 8.6821], flag: '🇩🇪', continent: 'Europe'},
+        {city: 'Gaborone', country: 'Botswana', coords: [-24.6282, 25.9231], flag: '🇧🇼', continent: 'Africa'},
+        {city: 'Guayaquil', country: 'Ecuador', coords: [-2.170998, -79.922359], flag: '🇪🇨', continent: 'South America'},
+        {city: 'Harare', country: 'Zimbabwe', coords: [-17.8252, 31.0335], flag: '🇿🇼', continent: 'Africa'},
+        {city: 'Helsinki', country: 'Finland', coords: [60.1699, 24.9384], flag: '🇫🇮', continent: 'Europe'},
+        {city: 'Hyderabad', country: 'India', coords: [17.3850, 78.4867], flag: '🇮🇳', continent: 'Asia'},
+        {city: 'Istanbul', country: 'Turkey', coords: [41.0082, 28.9784], flag: '🇹🇷', continent: 'Europe'},
+        {city: 'Johannesburg', country: 'South Africa', coords: [-26.2041, 28.0473], flag: '🇿🇦', continent: 'Africa'},
+        {city: 'Kiev', country: 'Ukraine', coords: [50.4501, 30.5234], flag: '🇺🇦', continent: 'Europe'},
+        {city: 'Kolkata', country: 'India', coords: [22.5726, 88.3639], flag: '🇮🇳', continent: 'Asia'},
+        {city: 'Krakow', country: 'Poland', coords: [50.0647, 19.9450], flag: '🇵🇱', continent: 'Europe'},
+        {city: 'La Paz', country: 'Bolivia', coords: [-16.4897, -68.1193], flag: '🇧🇴', continent: 'South America'},
+        {city: 'Lisbon', country: 'Portugal', coords: [38.7169, -9.1395], flag: '🇵🇹', continent: 'Europe'},
+        {city: 'Ljubljana', country: 'Slovenia', coords: [46.0569, 14.5058], flag: '🇸🇮', continent: 'Europe'},
+        {city: 'Lome', country: 'Togo', coords: [6.1725, 1.2314], flag: '🇹🇬', continent: 'Africa'},
+        {city: 'London', country: 'UK', coords: [51.5074, -0.1278], flag: '🇬🇧', continent: 'Europe'},
+        {city: 'Luxembourg', country: 'Luxembourg', coords: [49.6117, 6.1319], flag: '🇱🇺', continent: 'Europe'},
+        {city: 'Luanda', country: 'Angola', coords: [-8.8383, 13.2344], flag: '🇦🇴', continent: 'Africa'},
+        {city: 'Madrid', country: 'Spain', coords: [40.4168, -3.7038], flag: '🇪🇸', continent: 'Europe'},
+        {city: 'Mbabane', country: 'Eswatini', coords: [-26.3054, 31.1364], flag: '🇸🇿', continent: 'Africa'},
+        {city: 'Manama', country: 'Bahrain', coords: [26.2235, 50.5876], flag: '🇧🇭', continent: 'Asia'},
+        {city: 'Milan', country: 'Italy', coords: [45.4642, 9.1900], flag: '🇮🇹', continent: 'Europe'},
+        {city: 'Monrovia', country: 'Liberia', coords: [6.3156, -10.8074], flag: '🇱🇷', continent: 'Africa'},
+        {city: 'Mumbai', country: 'India', coords: [19.0760, 72.8777], flag: '🇮🇳', continent: 'Asia'},
+        {city: 'Munich', country: 'Germany', coords: [48.1351, 11.5820], flag: '🇩🇪', continent: 'Europe'},
+        {city: 'Nairobi', country: 'Kenya', coords: [-1.2921, 36.8219], flag: '🇰🇪', continent: 'Africa'},
+        {city: 'New Delhi', country: 'India', coords: [28.6139, 77.2090], flag: '🇮🇳', continent: 'Asia'},
+        {city: 'Nouakchott', country: 'Mauritania', coords: [18.0735, -15.9582], flag: '🇲🇷', continent: 'Africa'},
+        {city: 'Oslo', country: 'Norway', coords: [59.9139, 10.7522], flag: '🇳🇴', continent: 'Europe'},
+        {city: 'Paris', country: 'France', coords: [48.8566, 2.3522], flag: '🇫🇷', continent: 'Europe'},
+        {city: 'Perth', country: 'Australia', coords: [-31.9505, 115.8605], flag: '🇦🇺', continent: 'Oceania'},
+        {city: 'Port Louis', country: 'Mauritius', coords: [-20.1609, 57.5012], flag: '🇲🇺', continent: 'Africa'},
+        {city: 'Port of Spain', country: 'Trinidad and Tobago', coords: [10.6549, -61.5019], flag: '🇹🇹', continent: 'North America'},
+        {city: 'Prague', country: 'Czech Republic', coords: [50.0755, 14.4378], flag: '🇨🇿', continent: 'Europe'},
+        {city: 'Reykjavik', country: 'Iceland', coords: [64.1355, -21.8954], flag: '🇮🇸', continent: 'Europe'},
+        {city: 'Riga', country: 'Latvia', coords: [56.9496, 24.1052], flag: '🇱🇻', continent: 'Europe'},
+        {city: 'Riyadh', country: 'Saudi Arabia', coords: [24.7136, 46.6753], flag: '🇸🇦', continent: 'Asia'},
+        {city: 'Rome', country: 'Italy', coords: [41.9028, 12.4964], flag: '🇮🇹', continent: 'Europe'},
+        {city: 'Sarajevo', country: 'Bosnia and Herzegovina', coords: [43.8563, 18.4131], flag: '🇧🇦', continent: 'Europe'},
+        {city: 'Sofia', country: 'Bulgaria', coords: [42.6977, 23.3219], flag: '🇧🇬', continent: 'Europe'},
+        {city: 'Stockholm', country: 'Sweden', coords: [59.3293, 18.0686], flag: '🇸🇪', continent: 'Europe'},
+        {city: 'Sydney', country: 'Australia', coords: [-33.8688, 151.2093], flag: '🇦🇺', continent: 'Oceania'},
+        {city: 'Tallinn', country: 'Estonia', coords: [59.4370, 24.7535], flag: '🇪🇪', continent: 'Europe'},
+        {city: 'Tashkent', country: 'Uzbekistan', coords: [41.2995, 69.2401], flag: '🇺🇿', continent: 'Asia'},
+        {city: 'Tbilisi', country: 'Georgia', coords: [41.7151, 44.8271], flag: '🇬🇪', continent: 'Europe'},
+        {city: 'Tokyo', country: 'Japan', coords: [35.6762, 139.6503], flag: '🇯🇵', continent: 'Asia'},
+        {city: 'Vienna', country: 'Austria', coords: [48.2082, 16.3738], flag: '🇦🇹', continent: 'Europe'},
+        {city: 'Vilnius', country: 'Lithuania', coords: [54.6872, 25.2797], flag: '🇱🇹', continent: 'Europe'},
+        {city: 'Warsaw', country: 'Poland', coords: [52.2297, 21.0122], flag: '🇵🇱', continent: 'Europe'},
+        {city: 'Yaounde', country: 'Cameroon', coords: [3.848, 11.5021], flag: '🇨🇲', continent: 'Africa'},
+        {city: 'Zagreb', country: 'Croatia', coords: [45.8150, 15.9785], flag: '🇭🇷', continent: 'Europe'},
+        {city: 'Zambia', country: 'Zambia', coords: [-13.1339, 27.8493], flag: '🇿🇲', continent: 'Africa'}
+      ];
+
+      // Add markers
+      visaLocations.forEach(function(loc) {
+        var flagIcon = L.divIcon({ className: 'flag-marker', html: loc.flag });
+        L.marker(loc.coords, {icon: flagIcon}).addTo(map);
+      });
+
+      // Fit map to markers and limit zoom out
+      var allCoords = visaLocations.map(loc => loc.coords);
+      var bounds = L.latLngBounds(allCoords);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 2 });
+
+      // Group cities by continent
+      var continents = {};
+      visaLocations.forEach(loc => {
+        if (!continents[loc.continent]) continents[loc.continent] = [];
+        continents[loc.continent].push(loc);
+      });
+
+      // Populate city list
+      var cityListDiv = document.getElementById('cityList');
+      for (var cont in continents) {
+        var title = document.createElement('div');
+        title.className = 'continent-title';
+        title.innerText = cont;
+        cityListDiv.appendChild(title);
+
+        continents[cont].forEach(loc => {
+          var div = document.createElement('div');
+          div.className = 'city-item';
+          div.innerHTML = loc.flag + ' ' + loc.city + ', ' + loc.country;
+          cityListDiv.appendChild(div);
+        });
+      }
+    };
+  </script>
+</body>
+</html>
